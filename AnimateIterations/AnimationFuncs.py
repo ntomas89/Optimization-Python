@@ -132,7 +132,7 @@ def Animate2D(fun, x0_min, x0_max, x1_min, x1_max, x0_vals, x1_vals):
 
     ax.legend(loc=1)
 
-    anim1 = animation.FuncAnimation(fig, animate_1, init_func=init_1, frames=len(x0_vals), interval=120, repeat_delay=60, blit=True)
+    anim1 = animation.FuncAnimation(fig, animate_1, init_func=init_1, frames=len(x0_vals), interval=20, repeat_delay=60, blit=True)
     
     plt.show()
 

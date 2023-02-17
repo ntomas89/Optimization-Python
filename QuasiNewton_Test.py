@@ -2,7 +2,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import sympy as sy
 from AnimateIterations.AnimationFuncs import *
-from MyMathFuncs.NewtonMethod import SimpleNewton, MarquardtNewton
+from MyMathFuncs.QuasiNewtonMethod import QuasiNewton_DFP, QuasiNewton_BFGS
+
 
 f_counter = 0 # Number of times f was called (for computational analysis)
 g_counter = 0
@@ -16,7 +17,7 @@ n = 2
 #   - tiene un punto de inflexion en (-1.215, 1.477) >> f = 3.113
 # Por tanto, dependiendo de donde empecemos la busqueda, el algoritmo puede encontrar uno u otro
 
-fexpr = 100*(x[0]**2 - x[1])**2 + (x[0] - 1)**2 + (x[0]**3)#(1- x[0])**2 + 100*(x[1] - x[0]**2)**2
+fexpr = (1- x[0])**2 + 100*(x[1] - x[0]**2)**2 #100*(x[0]**2 - x[1])**2 + (x[0] - 1)**2 + (x[0]**3)#
 gexpr = [sy.diff(fexpr, x[i]) for i in range(n)]
 Hexpr = [[sy.diff(g, x[i]) for i in range(n)] for g in gexpr]
 
@@ -40,7 +41,7 @@ def Hfun(x):
     H_counter += 1
     return np.array([[gf(x)for gf in Hs] for Hs in Hlambdify])
 
-x_init = np.random.normal(0,10,n)*5
+x_init = [75,50]#np.random.normal(0,10,n)*5
 print("=================================================================")
 print("funcion: ", fexpr)
 print("gradiente: ", gexpr)
@@ -49,7 +50,9 @@ print("Iniciamos la busqueda en ", x_init)
 #x0_ELS, x1_ELS, f_ELS = SimpleNewton(fexpr, fun, gfun, Hfun, x, x_init, "ExactLineSearch", iterPrint=True)
 #x0_BA, x1_BA, f_BA    = SimpleNewton(fexpr, fun, gfun, Hfun, x, x_init, "BacktrackingArmijo", iterPrint=False)
 #x0_BAW, x1_BAW, f_BAW = SimpleNewton(fexpr, fun, gfun, Hfun, x, x_init, "BacktrackingArmijoWolfe", iterPrint=False)
-x0_ELS, x1_ELS, f_ELS = MarquardtNewton(fexpr, fun, gfun, Hfun, x, x_init, "ExactLineSearch", iterPrint=True)
+x0_ELS, x1_ELS, f_ELS = QuasiNewton_DFP(fexpr, fun, gfun, Hfun, x, x_init, "ExactLineSearch", iterPrint=True)
+x0_ELS, x1_ELS, f_ELS = QuasiNewton_BFGS(fexpr, fun, gfun, Hfun, x, x_init, "ExactLineSearch", iterPrint=True)
+
 #==========================================================================
 # Animate search
 x0_min = -100

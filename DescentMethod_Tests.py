@@ -1,7 +1,7 @@
 import numpy as np 
 import sympy as sy
 from AnimateIterations.AnimationFuncs import *
-from MyMathFuncs.DescentMethod import GradientDescent_ExactLineSearch
+from MyMathFuncs.GradientMethods import GradientDescent, ConjugateGradient
 
 # =========================================================================================================    
 # TEST INITIALISATION
@@ -16,7 +16,7 @@ n = 2
 #   - tiene un minimo local en (0.548, 0.301) >> f = 0.369
 #   - tiene un punto de inflexion en (-1.215, 1.477) >> f = 3.113
 # Por tanto, dependiendo de donde empecemos la busqueda, el algoritmo puede encontrar uno u otro
-fexpr = 100*(x[0]**2 - x[1])**2 + (x[0] - 1)**2 + x[0]**3#3*x[0]**3 + 2*x[0]*x[1] + 2*x[1]**2 + 7
+fexpr = (1- x[0])**2 + 100*(x[1] - x[0]**2)**2 #+  x[0]**3#3*x[0]**3 + 2*x[0]*x[1] + 2*x[1]**2 + 7
 gexpr = [sy.diff(fexpr, x[i]) for i in range(n)]
 
 print("funcion: ", fexpr)
@@ -40,16 +40,18 @@ def gfun(x):
 # CALL THE ALGORITHMS
 # =========================================================================================================
 
-xVals, yVals, fVals = GradientDescent_ExactLineSearch(fexpr, fun, gfun, [x[0], x[1]], [-50,1])
+x_init = [2, 2]
+xVals, yVals, fVals = GradientDescent(fexpr, fun, gfun, [x[0], x[1]], x_init, "BacktrackingArmijoWolfe")
+#xVals, yVals, fVals = ConjugateGradient(fexpr, fun, gfun, [x[0], x[1]], x_init, "BacktrackingArmijoWolfe")
 
 # =========================================================================================================    
 # PLOT THE SEARCH
 # =========================================================================================================
-x0_min = -100
-x0_max = 100
-x1_min = -100
-x1_max = 100
+x0_min = -2.5
+x0_max = 2.5
+x1_min = -1
+x1_max = 3
 
-#Animate2D(fun, x0_min, x0_max, x1_min, x1_max, xVals, yVals)
-Animate3D(fun, x0_min, x0_max, x1_min, x1_max, xVals, yVals, fVals)
+Animate2D(fun, x0_min, x0_max, x1_min, x1_max, xVals, yVals)
+#Animate3D(fun, x0_min, x0_max, x1_min, x1_max, xVals, yVals, fVals)
 

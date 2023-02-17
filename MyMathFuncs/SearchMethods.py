@@ -5,6 +5,11 @@ This is always a 1D minimization problem, also called a line search problem.
 There are two type of line search:
 ANALYTICAL: we solve the minimisation problem for the one-dimensional function f(alpha)
 NUMERICAL: we approximate an alpha_min
+    In the analytical search (see ExactLineSearch), we find the exact alpha that minimizes f(xk + alpha*direction). 
+    For an inexact method where we don't calculate the exacr minimum, a stopping criteria is required. 
+    This criteria is: gradient(k+1)*direction(k) = 0
+    To check this, we need to compute the gradient at every iteration, which is inefficient. 
+    Armijo's rule tries to solve this.
 """
 
 def ExactLineSearch(fexpr, f, x0, x, dk):
@@ -64,14 +69,41 @@ def GoldenSearch(fexpr, f, x0, x, dk):
 
 """
 
-def BacktrackingArmijo(f, g, p, x0, alpha, sigma, *args):
+def BacktrackingArmijo(f, g, p, x0, alpha, rho):
+    # Inexact Line Search Method. Armijo’s rule uses a linear function of a in deciding if the step size is acceptable
+    # q(alpha) = f(0) * alpha[sigma*f'(0)]
+    # The value of alpha is considered not too large if f(alpha) lies below the line q(alpha)
     import numpy as np 
-    condition = f(x0 + alpha*p) < f(x0) + sigma*alpha*np.dot(g(x0), p)
-    return condition, 0
+    q = f(x0) + alpha*rho*np.dot(g(x0), p) # Eq. (11.14)
+    upperBound = f(x0 + alpha*p) <= q # Eq. (11.15)
+    i = 0
+    if not upperBound:
+        for i in range(50):
+            alphaAux = alpha/(1.5**i)
+            upperBound = f(x0 + alphaAux*p) < f(x0) + rho*alphaAux*np.dot(g(x0), p)
+            if upperBound: 
+                alpha = alphaAux
+                break
+    return alpha, i
 
-def BacktrackingArmijoWolfe(f, g, p, x0, alpha, sigma, gamma):
+def BacktrackingArmijoWolfe(f, g, p, x0, alpha, rho, beta):
+    # The sufficient-decrease condition of Armijo's rule is not enough by itself to ensure that the
+    # algorithm is making reasonable progress, because it can be satisfied by small values for alpha.
+    # To overcome this drawback, Wolfe (Nocedal and Wright, 2006) introduced another condition for
+    # the step size, known as the curvature condition, which requires alpha to satisfy: 
+    # f'(alpha) >= beta * f'(0)
     import numpy as np 
-    Armijo = f(x0 + alpha*p) <= f(x0) + alpha*sigma*np.dot(g(x0), p)
-    Wolfe = abs(np.dot(g(x0+alpha*p), p)) <= -gamma*np.dot(g(x0), p)
+    Armijo = f(x0 + alpha*p) <= f(x0) + alpha*rho*np.dot(g(x0), p)
+    Wolfe = abs(np.dot(g(x0+alpha*p), p)) <= -beta*abs(np.dot(g(x0), p))
     condition = Armijo and Wolfe
-    return condition, 0
+    i = 0
+    if not condition:
+        for i in range(50):
+            alphaAux = alpha/(1.5**i)
+            Armijo = f(x0 + alphaAux*p) <= f(x0) + alphaAux*rho*np.dot(g(x0), p)
+            Wolfe = abs(np.dot(g(x0+alphaAux*p), p)) <= beta*abs(np.dot(g(x0), p))
+            condition = Armijo and Wolfe
+            if condition: 
+                alpha = alphaAux
+                break
+    return alpha, i
